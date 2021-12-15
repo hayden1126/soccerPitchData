@@ -1,0 +1,60 @@
+{   
+    "UUID" : "9G5i7NFpXL",
+    "location" : {
+        "name" : {
+            "en" : "",
+            "cn" : ""
+        },
+        "address" : {
+            "en" : "",
+            "cn" : ""
+        },
+        "district" : {
+            "en" : "",
+            "cn" : ""
+        },
+        "geocode" : {
+            "WGS84": {
+                "lat": "",
+                "lng": "",
+                "DMS": {
+                    "lat": "",
+                    "lng": ""
+                }
+            }
+        },
+        "court_no": "1"
+    },
+    "phone": ["12341234"],
+    "opening_hours": "7am - 11pm",
+    "multiPurposeCourt": "",
+    "facilities": {
+        "toilet": true,
+        "changingRoom": true,
+        "locker": true,
+        "accessibility": {
+            "toilet": true,
+            "tactileGuidePath": true,
+            "brailleDirectoryMap": true
+        },
+        "carpark": "",
+        "kiosk": "",
+        "spectatorStand": "",
+        "footballPitch": {
+            "artificial": "",
+            "natural": ""
+        },
+        "basketballCourt": "",
+        "playground": "",
+        "childernPlayEquipment": "",
+        "fitnessStation": "",
+        "elderlyFitnessEquipment": "",
+        "volleyballCourt": "",
+        "cyclingTrack": "",
+        "joggingTrack": "",
+        "pebbleWalkingTrail": "",
+        "tennisCourt": "",
+        "rollerSkatingRink": "",
+        "raceCourse": ""
+    }
+        }
