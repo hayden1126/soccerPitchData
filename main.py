@@ -3,11 +3,28 @@ import json
 import datetime
 import re
 from bs4 import BeautifulSoup
+import bcrypt
+# import zlib and crc32
+import zlib
+
 
 headers = {"Content-Type":"application/xml",
 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:50.0) Gecko/20100101 Firefox/50.0", 
 "Connection": "close"}
 
+def generate_hash_value(a, b, c):
+    '''
+    a: Name_cn
+    b: Opening_hours_cn
+    c: Remarks_cn
+    '''
+    if c == None:
+        c = ""
+    s = a + b + c
+    print(s)
+    t = zlib.crc32(s.encode())
+
+    return t
 
 def download_files():
     #download the file into memory
@@ -20,11 +37,13 @@ def download_files():
     x.write(json_data)
     x.close()
 
-
 def clean_facilities(sText):
-    soup = BeautifulSoup(sText, 'html.parser')
-    cText = soup.text
-    print(cText)
+    if sText == None:
+        return ""
+    else:
+        soup = BeautifulSoup(sText, 'html.parser')
+        cText = soup.text
+        return cText
 
 def clean_newline(address):
     cleanedAddress = address.replace("\n", " ")
@@ -39,7 +58,47 @@ def remove_useless_whitespace(address):
     cleanedAddress = address.strip().lower()
     return cleanedAddress
 
+def determineMultiPurpose(a):
+    if "multi" in a.lower():
+        return True
+    else:
+        return False
 
+def determineToilet(a):
+    if "toilet" in a.lower():
+        return True
+    else:
+        return False
+
+def cleanPhoneNum(a):
+    phoneNum = a
+    if type(a) != int:
+        phoneNum = int(a.replace(" ", ""))    
+    return phoneNum
+
+def determineChangingRoom(a):
+    if "changing" in a.lower():
+        return True
+    else:
+        return False
+
+def determineSpectatorStand(a):
+    if "spectator" in a.lower():
+        return True
+    else:
+        return False
+
+def determineOverall(a, b):
+    if b in a.lower():
+        return True
+    else:
+        return False
+
+def determineSpectatorStand(a):
+    if "spectator" in a.lower():
+        return True
+    else:
+        return False
 
 def main():
     startTime = datetime.datetime.now()
@@ -49,124 +108,89 @@ def main():
     x= open("soccer_pitches_data_raw.json")
     data = json.load(x)
 
-    newStationsList =[]
+    newPitchesList =[]
     counter = 0
 
     for ele in data:
+        
         cleanFacilityString = clean_facilities(ele["Ancillary_facilities_en"])
-        if ele["Remarks_en"] !=  "":
-            print(ele["Remarks_en"])
+        # if ele["Remarks_en"] !=  "":
+        #     print(ele["Remarks_en"])
         #counter+=1
         #if counter > 10:
             #break
 
         
         newPitchesData = {   
-    "UUID" : "9G5i7NFpXL",
-    "location" : {
-        "name" : {
-            "en" : "",
-            "cn" : ""
-        },
-        "address" : {
-            "en" : "",
-            "cn" : ""
-        },
-        "district" : {
-            "en" : "",
-            "cn" : ""
-        },
-        "geocode" : {
-            "WGS84": {
-                "lat": "",
-                "lng": "",
-                "DMS": {
-                    "lat": "",
-                    "lng": ""
-                }
+            "UUID" : ele["GIHS"],
+            "hashValue": generate_hash_value(ele["Name_cn"],ele["Opening_hours_cn"],ele["Remarks_cn"]),
+            "location" : {
+                "name" : {
+                    "en" : ele["Name_en"],
+                    "cn" : ele["Name_cn"]
+                },
+                "address" : {
+                    "en" : "",
+                    "cn" : ""
+                },
+                "district" : {
+                    "en" : ele["District_en"],
+                    "cn" : ele["District_cn"]
+                },
+                "geocode" : {
+                    "WGS84": {
+                        "lat": "",
+                        "lng": "",
+                        "DMS": {
+                            "lat": ele["Latitude"],
+                            "lng": ele["Longitude"]
+                        }
+                    }
+                },
+                "court_no": int(ele["Court_no_en"])
+            },
+            "phone": cleanPhoneNum(ele["Phone"]),
+            "opening_hours": ele["Opening_hours_en"],
+            "multiPurposeCourt": determineMultiPurpose(ele["Remarks_en"]),
+            "facilities": {
+                "toilet": determineToilet(cleanFacilityString),
+                "changingRoom": determineChangingRoom(cleanFacilityString),
+                "locker": True,
+                "accessibility": {
+                    "toilet": True,
+                    "tactileGuidePath": True,
+                    "brailleDirectoryMap": True
+                },
+                "carpark": "",
+                "kiosk": "",
+                "spectatorStand": determineSpectatorStand(cleanFacilityString),
+                "footballPitch": {
+                    "artificial": "",
+                    "natural": ""
+                },
+                "basketballCourt": "",
+                "playground": "",
+                "childernPlayEquipment": "",
+                "fitnessStation": "",
+                "elderlyFitnessEquipment": "",
+                "volleyballCourt": "",
+                "cyclingTrack": "",
+                "joggingTrack": "",
+                "pebbleWalkingTrail": "",
+                "tennisCourt": "",
+                "rollerSkatingRink": "",
+                "raceCourse": ""
             }
-        },
-        "court_no": "1"
-    },
-    "phone": ["12341234"],
-    "opening_hours": "7am - 11pm",
-    "multiPurposeCourt": "",
-    "facilities": {
-        "toilet": True,
-        "changingRoom": True,
-        "locker": True,
-        "accessibility": {
-            "toilet": True,
-            "tactileGuidePath": True,
-            "brailleDirectoryMap": True
-        },
-        "carpark": "",
-        "kiosk": "",
-        "spectatorStand": "",
-        "footballPitch": {
-            "artificial": "",
-            "natural": ""
-        },
-        "basketballCourt": "",
-        "playground": "",
-        "childernPlayEquipment": "",
-        "fitnessStation": "",
-        "elderlyFitnessEquipment": "",
-        "volleyballCourt": "",
-        "cyclingTrack": "",
-        "joggingTrack": "",
-        "pebbleWalkingTrail": "",
-        "tennisCourt": "",
-        "rollerSkatingRink": "",
-        "raceCourse": ""
-    }
         }
 
 
+        newPitchesList.append(newPitchesData)
+        counter += 1
 
-
-    #     """
-    #     "vehicle" value should be Tesla, BYD or General
-    #     """
-    #     newStationData = {
-    #         "uuid": station["no"],
-    #         "address": {
-    #             "full": {
-    #                 "zh": "",
-    #                 "en": process_string(remove_useless_whitespace(station["address"]))
-    #             },
-    #             "streetName": process_string(station["address"]),
-    #             "region": process_string(station["districtL"]),
-    #             "district": process_string(station["districtS"]),
-    #             "locationName": {
-    #                 "zh" : "",
-    #                 "en": process_string(station["location"])
-    #             },
-    #             "geocode":{
-    #                 "WGS84": {
-    #                     "lat": station["lat"],
-    #                     "lng": station["lng"],
-    #                 }
-    #             }
-    #         },
-    #         "provider": process_string(station["provider"]),
-    #         "type": {
-    #             "charging": process_string(station["type"]).split(";"), #standard / semiquick / quick
-    #             "vehicle": vehicle_supported_type(station["parkingNo"]), 
-    #         },
-    #         "publicPermit": check_public_permit(station["parkingNo"]),
-    #         "parkingSlot": parking_slot_list(station["parkingNo"]),
-    #         "updateCheckSum": ""
-    #     }
-
-
-    #     newStationsList.append(newStationData)
-    #     counter += 1
-
-    #     if counter % 20 == 0:
-    #         x = open("cleaned_EV_raw.json","w")
-    #         x.write(json.dumps(newStationsList, indent=4))
-    #         x.close()
+        if counter % 20 == 0:
+            x = open("soccer_pitches_cleaned.json","w")
+            x.write(json.dumps(newPitchesList, indent=4))
+            x.close()
 
 
 
