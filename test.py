@@ -152,32 +152,32 @@ def find_opening_hours(a, b):
         #print(a.find("("))
         a = a[:a.find("(")]
     a = a.replace("–", "-")
-    #print()
-    #print(b)
-    #print(a)
+    print()
+    print(b)
+    print(a)
     
     if a == "24 hours":
         openingHours = "00:00-23:59"
-        #print(openingHours)
+        print(openingHours)
         return openingHours
     
     elif "to" in a:
         openingHours = convert_opening_hours(a, "to")
-        #print(openingHours)
+        print(openingHours)
         return openingHours
     
     elif "ndash" in a:
         openingHours = convert_opening_hours(a, "&ndash;")
-        #print(openingHours)
+        print(openingHours)
         return openingHours
 
     elif "-" in a:
         openingHours = convert_opening_hours(a, "-")
-        #print(openingHours)
+        print(openingHours)
         return openingHours
 
     else:
-        #print("Unknown")
+        print("Unknown")
         return "Unknown"
 
 def main():
