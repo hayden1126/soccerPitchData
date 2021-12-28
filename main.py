@@ -5,36 +5,27 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 import zlib
+import glob
+import os
+
+## import General helper components ##
+from components.helpers import generate_hash_value
+from components.helpers import process_string
+from components.helpers import clean_phone_num
+from components.helpers import DMS_to_WGS84
+
+## import IO helper components ##
+from components.iohelpers import download_files
+from components.iohelpers import get_latest_file_in_directory
+from components.iohelpers import move_final_file_from_cached_folder
+from components.iohelpers import remove_cached_files
 
 
+## constants are list below ##
+global headers
 headers = {"Content-Type":"application/xml",
 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:50.0) Gecko/20100101 Firefox/50.0", 
 "Connection": "close"}
-
-def generate_hash_value(a, b, c):
-    '''
-    a: Name_cn
-    b: Opening_hours_cn
-    c: Remarks_cn
-    '''
-    if c == None:
-        c = ""
-    s = a + b + c
-    #print(s)
-    t = zlib.crc32(s.encode())
-
-    return t
-
-def download_files():
-    #download the file into memory
-    res = requests.get("https://www.lcsd.gov.hk/datagovhk/facility/facility-hssp7.json", headers=headers)
-
-    json_file= json.loads(res.text)
-    json_data= json.dumps(json_file, indent=4, sort_keys=True, ensure_ascii=False)
-    #print(json_data)
-    x= open("soccer_pitches_data_raw.json","w")
-    x.write(json_data)
-    x.close()
 
 def clean_facilities(sText):
     if sText == None:
@@ -43,33 +34,6 @@ def clean_facilities(sText):
         soup = BeautifulSoup(sText, 'html.parser')
         cText = soup.text
         return cText
-
-def clean_newline(address):
-    cleanedAddress = address.replace("\n", " ")
-    return cleanedAddress
-
-def process_string(address):
-    cleanedAddress = clean_newline(address)
-    cleanedAddress = remove_useless_whitespace(cleanedAddress)
-    return cleanedAddress
-
-def remove_useless_whitespace(address):
-    cleanedAddress = address.strip().lower()
-    return cleanedAddress
-
-def clean_phone_num(a):
-    phoneNum = a
-    if type(a) != int:
-        phoneNum = a.replace(" ", "")
-        if phoneNum.isnumeric():
-            phoneNum = [int(phoneNum)]
-        else:
-            phoneNum = phoneNum.split("/")
-            #print(phoneNum)
-    else:
-        phoneNum = [int(phone) for phone in phoneNum]
-    #print(phoneNum)
-    return phoneNum
 
 def determine_overall(a, b):
     if a != None:    
@@ -94,18 +58,6 @@ def determine_overall_with_remark(a, b):
         return True
     else:
         return False
-
-def DMS_to_WGS84(DMS):
-    DMSSplit = DMS.split("-")   
-    d = int(DMSSplit[0])
-    m = int(DMSSplit[1])
-    sd = int(DMSSplit[2])
-    dec = 0.0
-    if d >= 0:
-        dec1 = d + float(m)/60 + float(sd)/3600
-    else:
-        dec1 = d - float(m)/60 - float(sd)/3600
-    return dec1    
 
 def find_court_no(a):
     if a != None or a == "":
@@ -183,9 +135,10 @@ def find_opening_hours(a, b):
 def main():
     startTime = datetime.now()
 
-    download_files()
+    download_files(headers)
 
-    x= open("soccer_pitches_data_raw.json")
+    x= open(get_latest_file_in_directory("./data/raw/")[0])
+    print(x)
     data = json.load(x)
 
     newPitchesList =[]
@@ -334,7 +287,8 @@ def main():
         counter += 1
 
         if counter % 20 == 0:
-            x = open("soccer_pitches_cleaned.json","w")
+            currentTime = datetime.now()
+            x = open("./data/cached/soccer_pitches_cleaned" + "_" + currentTime.isoformat() + ".json","w")
             x.write(json.dumps(newPitchesList, indent=4, sort_keys=True, ensure_ascii=False))
             x.close()
 
@@ -348,3 +302,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    move_final_file_from_cached_folder("./data/cached/", "./data/clean/")
+    remove_cached_files("./data/cached/")
