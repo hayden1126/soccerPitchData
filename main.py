@@ -7,6 +7,7 @@ from datetime import datetime
 import zlib
 import glob
 import os
+import concurrent.futures
 
 ## import General helper components ##
 from components.helpers import generate_hash_value
