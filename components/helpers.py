@@ -6,8 +6,6 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import zlib
 
-<<<<<<< HEAD
-=======
 from components.iohelpers import get_latest_file_in_directory
 
 def get_list_length(data=get_latest_file_in_directory("./data/raw/")[0]):
@@ -15,7 +13,6 @@ def get_list_length(data=get_latest_file_in_directory("./data/raw/")[0]):
     data = json.load(x)
     return (len(data))
 
->>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
 def generate_hash_value(a, b, c):
     '''
     a: Name_cn
