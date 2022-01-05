@@ -1,3 +1,4 @@
+from typing import Counter
 import requests
 import json
 #import datetime
@@ -23,7 +24,12 @@ from components.iohelpers import remove_cached_files
 
 
 ## constants are list below ##
+<<<<<<< HEAD
 global headers
+=======
+global headers, totalProcess, counter
+counter = 0
+>>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
 headers = {"Content-Type":"application/xml",
 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:50.0) Gecko/20100101 Firefox/50.0", 
 "Connection": "close"}
@@ -133,6 +139,148 @@ def find_opening_hours(a, b):
         #print("Unknown")
         return "Unknown"
 
+def reformat_raw_data(list):
+    global counter
+    ele = list[1]
+    totalProcess = list[0]
+    print("totalProcess: ", totalProcess)
+    # totalProcess = get_list_length()
+    cleanFacilityString = clean_facilities(ele["Ancillary_facilities_en"])
+
+    newPitchesData = {   
+        "UUID" : ele["GIHS"],
+        "hashValue": generate_hash_value(ele["Name_cn"],ele["Opening_hours_cn"],ele["Remarks_cn"]),
+        "location" : {
+            "name" : {
+                "en" : ele["Name_en"].strip(),
+                "cn" : ele["Name_cn"].strip()
+            },
+            "address" : {
+                "en" : ele["Address_en"].strip(),
+                "cn" : ele["Address_cn"].strip()
+            },
+            "district" : {
+                "en" : ele["District_en"].strip(),
+                "cn" : ele["District_cn"].strip()
+            },
+            "geocode" : {
+                "WGS84": {
+                    "lat": DMS_to_WGS84(ele["Latitude"]),
+                    "lng": DMS_to_WGS84(ele["Longitude"]),
+                    "DMS": {
+                        "lat": ele["Latitude"],
+                        "lng": ele["Longitude"]
+                    }
+                }
+            },
+            "court_no": find_court_no(ele["Court_no_en"])
+        },
+        "phone": clean_phone_num(ele["Phone"]),
+        
+
+        "opening_hours": find_opening_hours(clean_facilities(ele["Opening_hours_en"]), ele["GIHS"]),
+        "multiPurposeCourt": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "multi"), 
+                determine_overall(ele["Remarks_en"], "multi")
+                ),
+        "facilities": {
+            "toilet": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "toilet"), 
+                determine_overall(ele["Remarks_en"], "toilet")
+                ),
+            "changingRoom": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "changing"), 
+                determine_overall(ele["Remarks_en"], "changing")
+                ),
+            "locker": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "locker"), 
+                determine_overall(ele["Remarks_en"], "locker")
+                ),
+            "accessibility": {
+                "toilet": determine_overall(cleanFacilityString, "Accessible Toilet"),
+                "tactileGuidePath": determine_overall(cleanFacilityString, "tactile guide path"),
+                "brailleDirectoryMap": determine_overall(cleanFacilityString, "braille directory")
+            },
+            "carpark": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, ["car park", "carpark"]), 
+                determine_overall(ele["Remarks_en"], ["car park", "carpark"])
+                ),
+            "kiosk": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "kiosk"), 
+                determine_overall(ele["Remarks_en"], "kiosk")
+                ),
+            "spectatorStand": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "spectator"), 
+                determine_overall(ele["Remarks_en"], "spectator")
+                ),
+            "soccerPitch": {
+                "artificialTurf": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, ["artificial"]), 
+                determine_overall(ele["Remarks_en"], ["artificial"])
+                ),
+                "naturalTurf": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, ["natural"]), 
+                determine_overall(ele["Remarks_en"], ["natural"])
+                )
+            },
+            "basketballCourt": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "basketball"), 
+                determine_overall(ele["Remarks_en"], "basketball")
+                ),
+            "playground": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, ["play ", "playground"]), 
+                determine_overall(ele["Remarks_en"], ["play ", "playground"])
+                ),
+            "fitnessStation": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "fitness"), 
+                determine_overall(ele["Remarks_en"], "fitness")
+                ),
+            "elderlyFitnessEquipment": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "elderly fitness"), 
+                determine_overall(ele["Remarks_en"], "elderly fitness")
+                ),
+            "volleyballCourt": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "volleyball"), 
+                determine_overall(ele["Remarks_en"], "volleyball")
+                ),
+            "cyclingTrack": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "cycling"), 
+                determine_overall(ele["Remarks_en"], "cycling")
+                ),
+            "joggingTrack": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, ["running", "jogging"]), 
+                determine_overall(ele["Remarks_en"], ["running", "jogging"])
+                ),
+            "pebbleWalkingTrail": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "pebble"), 
+                determine_overall(ele["Remarks_en"], "pebble")
+                ),
+            "tennisCourt": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "tennis"), 
+                determine_overall(ele["Remarks_en"], "tennis")
+                ),
+            "rollerSkatingRink": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "roller skating"), 
+                determine_overall(ele["Remarks_en"], "roller skating")
+                ),
+            "raceCourse": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "race course"), 
+                determine_overall(ele["Remarks_en"], "race course")
+                ),
+            "handball": determine_overall_with_remark(
+                determine_overall(cleanFacilityString, "handball"), 
+                determine_overall(ele["Remarks_en"], "handball")
+                )
+        }
+    }
+
+    counter += 1
+    print("Processing {} of {}, {:.1%} finished".format(counter, totalProcess, counter/int(totalProcess)),
+    end="\r", flush=True)
+
+    return newPitchesData
+
+
 def main():
     startTime = datetime.now()
 
@@ -143,8 +291,8 @@ def main():
     data = json.load(x)
 
     newPitchesList =[]
-    counter = 0
 
+<<<<<<< HEAD
     for ele in data:
         cleanFacilityString = clean_facilities(ele["Ancillary_facilities_en"])
         # if cleanFacilityString != None and "play" in cleanFacilityString:
@@ -154,144 +302,33 @@ def main():
         #counter+=1
         #if counter > 10:
             #break
+=======
+    totalProcess = get_list_length()
 
-        
-        newPitchesData = {   
-            "UUID" : ele["GIHS"],
-            "hashValue": generate_hash_value(ele["Name_cn"],ele["Opening_hours_cn"],ele["Remarks_cn"]),
-            "location" : {
-                "name" : {
-                    "en" : ele["Name_en"].strip(),
-                    "cn" : ele["Name_cn"].strip()
-                },
-                "address" : {
-                    "en" : ele["Address_en"].strip(),
-                    "cn" : ele["Address_cn"].strip()
-                },
-                "district" : {
-                    "en" : ele["District_en"].strip(),
-                    "cn" : ele["District_cn"].strip()
-                },
-                "geocode" : {
-                    "WGS84": {
-                        "lat": DMS_to_WGS84(ele["Latitude"]),
-                        "lng": DMS_to_WGS84(ele["Longitude"]),
-                        "DMS": {
-                            "lat": ele["Latitude"],
-                            "lng": ele["Longitude"]
-                        }
-                    }
-                },
-                "court_no": find_court_no(ele["Court_no_en"])
-            },
-            "phone": clean_phone_num(ele["Phone"]),
-            
+    print("\nWe have {} data to process.".format(totalProcess))
+    print("\n\n")
+>>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
 
-            "opening_hours": find_opening_hours(clean_facilities(ele["Opening_hours_en"]), ele["GIHS"]),
-            "multiPurposeCourt": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "multi"), 
-                    determine_overall(ele["Remarks_en"], "multi")
-                    ),
-            "facilities": {
-                "toilet": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "toilet"), 
-                    determine_overall(ele["Remarks_en"], "toilet")
-                    ),
-                "changingRoom": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "changing"), 
-                    determine_overall(ele["Remarks_en"], "changing")
-                    ),
-                "locker": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "locker"), 
-                    determine_overall(ele["Remarks_en"], "locker")
-                    ),
-                "accessibility": {
-                    "toilet": determine_overall(cleanFacilityString, "Accessible Toilet"),
-                    "tactileGuidePath": determine_overall(cleanFacilityString, "tactile guide path"),
-                    "brailleDirectoryMap": determine_overall(cleanFacilityString, "braille directory")
-                },
-                "carpark": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, ["car park", "carpark"]), 
-                    determine_overall(ele["Remarks_en"], ["car park", "carpark"])
-                    ),
-                "kiosk": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "kiosk"), 
-                    determine_overall(ele["Remarks_en"], "kiosk")
-                    ),
-                "spectatorStand": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "spectator"), 
-                    determine_overall(ele["Remarks_en"], "spectator")
-                    ),
-                "soccerPitch": {
-                    "artificialTurf": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, ["artificial"]), 
-                    determine_overall(ele["Remarks_en"], ["artificial"])
-                    ),
-                    "naturalTurf": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, ["natural"]), 
-                    determine_overall(ele["Remarks_en"], ["natural"])
-                    )
-                },
-                "basketballCourt": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "basketball"), 
-                    determine_overall(ele["Remarks_en"], "basketball")
-                    ),
-                "playground": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, ["play ", "playground"]), 
-                    determine_overall(ele["Remarks_en"], ["play ", "playground"])
-                    ),
-                "fitnessStation": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "fitness"), 
-                    determine_overall(ele["Remarks_en"], "fitness")
-                    ),
-                "elderlyFitnessEquipment": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "elderly fitness"), 
-                    determine_overall(ele["Remarks_en"], "elderly fitness")
-                    ),
-                "volleyballCourt": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "volleyball"), 
-                    determine_overall(ele["Remarks_en"], "volleyball")
-                    ),
-                "cyclingTrack": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "cycling"), 
-                    determine_overall(ele["Remarks_en"], "cycling")
-                    ),
-                "joggingTrack": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, ["running", "jogging"]), 
-                    determine_overall(ele["Remarks_en"], ["running", "jogging"])
-                    ),
-                "pebbleWalkingTrail": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "pebble"), 
-                    determine_overall(ele["Remarks_en"], "pebble")
-                    ),
-                "tennisCourt": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "tennis"), 
-                    determine_overall(ele["Remarks_en"], "tennis")
-                    ),
-                "rollerSkatingRink": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "roller skating"), 
-                    determine_overall(ele["Remarks_en"], "roller skating")
-                    ),
-                "raceCourse": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "race course"), 
-                    determine_overall(ele["Remarks_en"], "race course")
-                    ),
-                "handball": determine_overall_with_remark(
-                    determine_overall(cleanFacilityString, "handball"), 
-                    determine_overall(ele["Remarks_en"], "handball")
-                    )
-            }
-        }
+    #for concurrent
+    array = [(ele, totalProcess) for ele in data], totalProcess
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        # formattedObject = executor.map(reformat_raw_data, *zip(*array))
+        formattedObject = executor.map(reformat_raw_data, [[ele for ele in data], totalProcess])
+
+        newPitchesList.extend(formattedObject)
 
 
+<<<<<<< HEAD
         newPitchesList.append(newPitchesData)
         counter += 1
+=======
+>>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
 
-        if counter % 20 == 0:
-            currentTime = datetime.now()
-            x = open("./data/cached/soccer_pitches_cleaned" + "_" + currentTime.isoformat() + ".json","w")
-            x.write(json.dumps(newPitchesList, indent=4, sort_keys=True, ensure_ascii=False))
-            x.close()
+        
+        currentTime = datetime.now()
+        x = open("./data/cached/soccer_pitches_cleaned" + "_" + currentTime.isoformat() + ".json","w")
+        x.write(json.dumps(newPitchesList, indent=4, sort_keys=True, ensure_ascii=False))
+        x.close()
 
 
 

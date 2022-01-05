@@ -11,7 +11,14 @@ import shutil
 
 def download_files(headers):
     #download the file into memory
+<<<<<<< HEAD
     res = requests.get("https://www.lcsd.gov.hk/datagovhk/facility/facility-hssp7.json", headers=headers)
+=======
+    res = requests.get(url, headers=headers)
+
+    json_file = json.loads(res.text)
+    json_file = duplicate_data(json_file, 30)
+>>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
 
     json_file= json.loads(res.text)
     json_data= json.dumps(json_file, indent=4, sort_keys=True, ensure_ascii=False)
@@ -41,7 +48,8 @@ def move_final_file_from_cached_folder(cachedFolderPath, destFolderPath):
     # os.replace(latestCachedFilePath[0], destFolderPath+latestCachedFilePath[-1])
 
 def remove_cached_files(cachedFolderPath):
-    latestCachedFilePath = get_latest_file_in_directory(cachedFolderPath)
+    # latestCachedFilePath = get_latest_file_in_directory(cachedFolderPath)
+
     for root, dirs, files in os.walk(cachedFolderPath):
         for f in files:
             os.unlink(os.path.join(root, f))
