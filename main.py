@@ -1,4 +1,3 @@
-from typing import Counter
 import requests
 import json
 #import datetime
@@ -23,16 +22,16 @@ from components.iohelpers import download_files
 from components.iohelpers import get_latest_file_in_directory
 from components.iohelpers import move_final_file_from_cached_folder
 from components.iohelpers import remove_cached_files
+from components.iohelpers import read_jsondata_from_file
 
 
 ## constants are list below ##
 global CONSTANT
-
 CONSTANT = {
     "url": "https://www.lcsd.gov.hk/datagovhk/facility/facility-hssp7.json"
 }
-global headers, totalProcess, counter
-counter = 0
+global headers
+
 headers = {"Content-Type":"application/xml",
 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:50.0) Gecko/20100101 Firefox/50.0", 
 "Connection": "close"}
@@ -143,7 +142,6 @@ def find_opening_hours(a, b):
         return "Unknown"
 
 def reformat_raw_data(ele):
-    global counter, totalProcess
     # ele = list[1]
     # totalProcess = list[0]
     # print("totalProcess: ", totalProcess)
@@ -284,18 +282,12 @@ def reformat_raw_data(ele):
     return newPitchesData
 
 
-def main():
-    startTime = datetime.now()
-
-    # download_files(CONSTANT["url"], headers)
-
-    x= open(get_latest_file_in_directory("./data/raw/")[0])
-    print(x)
-    data = json.load(x)
+def main(data):
+    print(totalProcess, counter)
 
     newPitchesList =[]
 
-    totalProcess = get_list_length(data)
+    # totalProcess = get_list_length(data)
 
     print("\nWe have {} data to process.".format(totalProcess))
     print("\n\n")
@@ -318,22 +310,32 @@ def main():
     with concurrent.futures.ProcessPoolExecutor(max_workers=7) as executor:
         # formattedObject = executor.map(
         #     lambda p: reformat_raw_data( * p), args)
+    
+        formattedObject = executor.map(reformat_raw_data, [d for d in data])
+        newPitchesList.extend(formattedObject)
 
-        for d in executor.map(lambda p: reformat_raw_data( * p), args):
-            newPitchesList.extend(d)
+        # for d in executor.map(lambda p: reformat_raw_data( * p), args):
+        #     newPitchesList.extend(d)
         
         currentTime = datetime.now()
         x = open("./data/cached/soccer_pitches_cleaned" + "_" + currentTime.isoformat() + ".json","w")
         x.write(json.dumps(newPitchesList, indent=4, sort_keys=True, ensure_ascii=False))
         x.close()
 
+    
+
+
+if __name__ == "__main__":
+    global totalProcess, counter
+    counter = 0
+    startTime = datetime.now()
+    # download_files(CONSTANT["url"], headers)
+    data = read_jsondata_from_file("./data/raw/")
+    totalProcess = get_list_length(data)
+    main(data)
+    move_final_file_from_cached_folder("./data/cached/", "./data/clean/")
+    remove_cached_files("./data/cached/")
     timeNow =  datetime.now()
     print(
         "\n\nTotal use {} seconds to run".format(round((timeNow - startTime).total_seconds()))
     )
-
-
-if __name__ == "__main__":
-    main()
-    move_final_file_from_cached_folder("./data/cached/", "./data/clean/")
-    remove_cached_files("./data/cached/")

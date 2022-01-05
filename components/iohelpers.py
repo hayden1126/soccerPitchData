@@ -30,6 +30,13 @@ def download_files(url, headers):
     x.write(json_data)
     x.close()
 
+def read_jsondata_from_file(url):
+    x= open(get_latest_file_in_directory(url)[0])
+    print(x)
+    data = json.load(x)
+    return data
+
+
 
 
 def get_latest_file_in_directory(path, mode="m"):
