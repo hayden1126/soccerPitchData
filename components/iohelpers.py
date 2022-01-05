@@ -9,18 +9,20 @@ import glob
 import os
 import shutil
 
-def download_files(headers):
+def duplicate_data(data, times):
+    output = []
+    for i in range(times):
+        for ele in data:
+            output.append(ele)
+    
+    return output
+
+def download_files(url, headers):
     #download the file into memory
-<<<<<<< HEAD
-    res = requests.get("https://www.lcsd.gov.hk/datagovhk/facility/facility-hssp7.json", headers=headers)
-=======
     res = requests.get(url, headers=headers)
 
     json_file = json.loads(res.text)
-    json_file = duplicate_data(json_file, 30)
->>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
-
-    json_file= json.loads(res.text)
+    json_file = duplicate_data(json_file, 300)
     json_data= json.dumps(json_file, indent=4, sort_keys=True, ensure_ascii=False)
     #print(json_data)
     currentTime = datetime.now()

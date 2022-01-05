@@ -65,3 +65,6 @@ def DMS_to_WGS84(DMS):
     else:
         dec1 = d - float(m)/60 - float(sd)/3600
     return dec1    
+
+def get_list_length(data):
+    return len(data)

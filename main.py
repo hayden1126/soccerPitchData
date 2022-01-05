@@ -9,12 +9,14 @@ import zlib
 import glob
 import os
 import concurrent.futures
+import itertools
 
 ## import General helper components ##
 from components.helpers import generate_hash_value
 from components.helpers import process_string
 from components.helpers import clean_phone_num
 from components.helpers import DMS_to_WGS84
+from components.helpers import get_list_length
 
 ## import IO helper components ##
 from components.iohelpers import download_files
@@ -24,12 +26,13 @@ from components.iohelpers import remove_cached_files
 
 
 ## constants are list below ##
-<<<<<<< HEAD
-global headers
-=======
+global CONSTANT
+
+CONSTANT = {
+    "url": "https://www.lcsd.gov.hk/datagovhk/facility/facility-hssp7.json"
+}
 global headers, totalProcess, counter
 counter = 0
->>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
 headers = {"Content-Type":"application/xml",
 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:50.0) Gecko/20100101 Firefox/50.0", 
 "Connection": "close"}
@@ -139,11 +142,11 @@ def find_opening_hours(a, b):
         #print("Unknown")
         return "Unknown"
 
-def reformat_raw_data(list):
-    global counter
-    ele = list[1]
-    totalProcess = list[0]
-    print("totalProcess: ", totalProcess)
+def reformat_raw_data(ele):
+    global counter, totalProcess
+    # ele = list[1]
+    # totalProcess = list[0]
+    # print("totalProcess: ", totalProcess)
     # totalProcess = get_list_length()
     cleanFacilityString = clean_facilities(ele["Ancillary_facilities_en"])
 
@@ -284,7 +287,7 @@ def reformat_raw_data(list):
 def main():
     startTime = datetime.now()
 
-    download_files(headers)
+    # download_files(CONSTANT["url"], headers)
 
     x= open(get_latest_file_in_directory("./data/raw/")[0])
     print(x)
@@ -292,49 +295,41 @@ def main():
 
     newPitchesList =[]
 
-<<<<<<< HEAD
-    for ele in data:
-        cleanFacilityString = clean_facilities(ele["Ancillary_facilities_en"])
-        # if cleanFacilityString != None and "play" in cleanFacilityString:
-        #     print(cleanFacilityString)
-        # if ele["Remarks_en"] !=  "":
-        #     print(ele["Remarks_en"])
-        #counter+=1
-        #if counter > 10:
-            #break
-=======
-    totalProcess = get_list_length()
+    totalProcess = get_list_length(data)
 
     print("\nWe have {} data to process.".format(totalProcess))
     print("\n\n")
->>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
 
-    #for concurrent
+    #legend
+    # for d in data:
+    #     cleanedObj = reformat_raw_data(totalProcess, d)
+    #     newPitchesList.extend(cleanedObj)
+    
+    # currentTime = datetime.now()
+    # x = open("./data/cached/soccer_pitches_cleaned" + "_" + currentTime.isoformat() + ".json","w")
+    # x.write(json.dumps(newPitchesList, indent=4, sort_keys=True, ensure_ascii=False))
+    # x.close()
+
+
+    # for concurrent
     array = [(ele, totalProcess) for ele in data], totalProcess
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        # formattedObject = executor.map(reformat_raw_data, *zip(*array))
-        formattedObject = executor.map(reformat_raw_data, [[ele for ele in data], totalProcess])
+    args = ((totalProcess, d) for d in data)
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=7) as executor:
+        # formattedObject = executor.map(
+        #     lambda p: reformat_raw_data( * p), args)
 
-        newPitchesList.extend(formattedObject)
-
-
-<<<<<<< HEAD
-        newPitchesList.append(newPitchesData)
-        counter += 1
-=======
->>>>>>> 6e7304b (remove useless files, concurrent future works, multi args not working)
-
+        for d in executor.map(lambda p: reformat_raw_data( * p), args):
+            newPitchesList.extend(d)
         
         currentTime = datetime.now()
         x = open("./data/cached/soccer_pitches_cleaned" + "_" + currentTime.isoformat() + ".json","w")
         x.write(json.dumps(newPitchesList, indent=4, sort_keys=True, ensure_ascii=False))
         x.close()
 
-
-
     timeNow =  datetime.now()
     print(
-        "Total use {} seconds to run".format(round((timeNow - startTime).total_seconds()))
+        "\n\nTotal use {} seconds to run".format(round((timeNow - startTime).total_seconds()))
     )
 
 
