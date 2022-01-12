@@ -145,7 +145,8 @@ def reformat_raw_data(ele):
     # ele = list[1]
     # totalProcess = list[0]
     # print("totalProcess: ", totalProcess)
-    # totalProcess = get_list_length()
+    global totalProcess, counter
+    totalProcess = get_list_length(data)
     cleanFacilityString = clean_facilities(ele["Ancillary_facilities_en"])
 
     newPitchesData = {   
@@ -286,8 +287,8 @@ def main(data):
     print(totalProcess, counter)
 
     newPitchesList =[]
-
-    # totalProcess = get_list_length(data)
+    global totalProcess
+    totalProcess = get_list_length(data)
 
     print("\nWe have {} data to process.".format(totalProcess))
     print("\n\n")
